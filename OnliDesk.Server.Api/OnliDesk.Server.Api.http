@@ -1,0 +1,6 @@
+@OnliDesk.Server.Api_HostAddress = http://localhost:5220
+
+GET {{OnliDesk.Server.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

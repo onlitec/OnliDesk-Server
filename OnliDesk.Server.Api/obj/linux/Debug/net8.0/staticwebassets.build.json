@@ -1,0 +1,77 @@
+{
+  "Version": 1,
+  "Hash": "xK0GoEzCYOYj6q/eogHlPOgUpj7zoTSOnWRq5ujEch8=",
+  "Source": "OnliDesk.Server.Api",
+  "BasePath": "_content/OnliDesk.Server.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "OnliDesk.Server.Api/wwwroot",
+      "Source": "OnliDesk.Server.Api",
+      "ContentRoot": "/opt/OnliDesk-Server/OnliDesk.Server.Api/wwwroot/",
+      "BasePath": "_content/OnliDesk.Server.Api",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "/opt/OnliDesk-Server/OnliDesk.Server.Api/wwwroot/index.html",
+      "SourceId": "OnliDesk.Server.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "/opt/OnliDesk-Server/OnliDesk.Server.Api/wwwroot/",
+      "BasePath": "_content/OnliDesk.Server.Api",
+      "RelativePath": "index.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/index.html"
+    },
+    {
+      "Identity": "/opt/OnliDesk-Server/OnliDesk.Server.Api/wwwroot/script.js",
+      "SourceId": "OnliDesk.Server.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "/opt/OnliDesk-Server/OnliDesk.Server.Api/wwwroot/",
+      "BasePath": "_content/OnliDesk.Server.Api",
+      "RelativePath": "script.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/script.js"
+    },
+    {
+      "Identity": "/opt/OnliDesk-Server/OnliDesk.Server.Api/wwwroot/styles.css",
+      "SourceId": "OnliDesk.Server.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "/opt/OnliDesk-Server/OnliDesk.Server.Api/wwwroot/",
+      "BasePath": "_content/OnliDesk.Server.Api",
+      "RelativePath": "styles.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/styles.css"
+    }
+  ]
+}

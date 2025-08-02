@@ -1,0 +1,5 @@
+/opt/OnliDesk-Server/OnliDesk.Server.Infrastructure/obj/Debug/net8.0/OnliDesk.Server.Infrastructure.csproj.AssemblyReference.cache
+/opt/OnliDesk-Server/OnliDesk.Server.Infrastructure/obj/Debug/net8.0/OnliDesk.Server.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/opt/OnliDesk-Server/OnliDesk.Server.Infrastructure/obj/Debug/net8.0/OnliDesk.Server.Infrastructure.AssemblyInfoInputs.cache
+/opt/OnliDesk-Server/OnliDesk.Server.Infrastructure/obj/Debug/net8.0/OnliDesk.Server.Infrastructure.AssemblyInfo.cs
+/opt/OnliDesk-Server/OnliDesk.Server.Infrastructure/obj/Debug/net8.0/OnliDesk.Server.Infrastructure.csproj.CoreCompileInputs.cache

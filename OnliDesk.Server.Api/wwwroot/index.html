@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnliDesk Server - Painel de Gerenciamento</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-desktop"></i>
+                    <h1>OnliDesk Server</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Atualizar
+                    </button>
+                    <button class="btn btn-danger" onclick="shutdownServer()">
+                        <i class="fas fa-power-off"></i>
+                        Desligar Servidor
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Grid -->
+        <main class="dashboard">
+            <!-- Server Status Cards -->
+            <section class="status-cards">
+                <div class="card">
+                    <div class="card-icon green">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Status do Servidor</h3>
+                        <p id="server-status" class="status-text">Online</p>
+                        <small id="uptime">Uptime: Carregando...</small>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Conexões Ativas</h3>
+                        <p id="active-connections" class="metric-number">0</p>
+                        <small>usuários conectados</small>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon orange">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Hoje</h3>
+                        <p id="total-today" class="metric-number">0</p>
+                        <small>conexões hoje</small>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon purple">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Tempo Médio</h3>
+                        <p id="avg-session" class="metric-number">0min</p>
+                        <small>duração da sessão</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-card">
+                    <h3>Conexões por Hora</h3>
+                    <canvas id="connectionsChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Uso de Recursos</h3>
+                    <div class="resource-meters">
+                        <div class="meter">
+                            <label>CPU</label>
+                            <div class="meter-bar">
+                                <div id="cpu-usage" class="meter-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="cpu-percent">0%</span>
+                        </div>
+                        <div class="meter">
+                            <label>Memória</label>
+                            <div class="meter-bar">
+                                <div id="memory-usage" class="meter-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="memory-percent">0%</span>
+                        </div>
+                        <div class="meter">
+                            <label>Disco</label>
+                            <div class="meter-bar">
+                                <div id="disk-usage" class="meter-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="disk-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Active Connections Table -->
+            <section class="connections-section">
+                <div class="section-header">
+                    <h3>Conexões Ativas</h3>
+                    <button class="btn btn-sm" onclick="loadConnections()">
+                        <i class="fas fa-refresh"></i>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="connections-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuário</th>
+                                <th>IP</th>
+                                <th>Início</th>
+                                <th>Duração</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="connections-tbody">
+                            <tr>
+                                <td colspan="7" class="loading">Carregando conexões...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Users Management -->
+            <section class="users-section">
+                <div class="section-header">
+                    <h3>Gerenciamento de Usuários</h3>
+                    <button class="btn btn-primary" onclick="showCreateUserModal()">
+                        <i class="fas fa-plus"></i>
+                        Novo Usuário
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome de Usuário</th>
+                                <th>Email</th>
+                                <th>Função</th>
+                                <th>Status</th>
+                                <th>Último Login</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr>
+                                <td colspan="7" class="loading">Carregando usuários...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Server Logs -->
+            <section class="logs-section">
+                <div class="section-header">
+                    <h3>Logs do Servidor</h3>
+                    <div class="log-controls">
+                        <select id="log-level">
+                            <option value="all">Todos os Níveis</option>
+                            <option value="error">Erro</option>
+                            <option value="warning">Aviso</option>
+                            <option value="info">Informação</option>
+                        </select>
+                        <button class="btn btn-sm" onclick="clearLogs()">
+                            <i class="fas fa-trash"></i>
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+                <div class="logs-container" id="logs-container">
+                    <div class="log-entry info">
+                        <span class="log-time">2025-08-01 23:33:58</span>
+                        <span class="log-level">INFO</span>
+                        <span class="log-message">Servidor iniciado com sucesso</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Criar Novo Usuário</h3>
+                <button class="close-btn" onclick="closeCreateUserModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label for="username">Nome de Usuário</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="role">Função</label>
+                    <select id="role" name="role">
+                        <option value="User">Usuário</option>
+                        <option value="Admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeCreateUserModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <!-- Removed Chart.js to eliminate requestAnimationFrame violations -->
+    <script src="script.js"></script>
+</body>
+</html>

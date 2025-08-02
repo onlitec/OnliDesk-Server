@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/OnliDesk.Server.Api.props" />
+</Project>
