@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/OnliDesk.Server.Api.props" />
-</Project>
