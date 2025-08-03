@@ -3,200 +3,521 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OnliDesk Server - Painel de Gerenciamento</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>OnliDesk Server - Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
+    <!-- Background Elements -->
+    <div class="bg-gradient"></div>
+    <div class="bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
                 <div class="logo">
-                    <i class="fas fa-desktop"></i>
-                    <h1>OnliDesk Server</h1>
-                </div>
-                <div class="header-actions">
-                    <button class="btn btn-outline" onclick="refreshData()">
-                        <i class="fas fa-sync-alt"></i>
-                        Atualizar
-                    </button>
-                    <button class="btn btn-danger" onclick="shutdownServer()">
-                        <i class="fas fa-power-off"></i>
-                        Desligar Servidor
-                    </button>
+                    <div class="logo-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2>OnliDesk</h2>
+                        <span>Server</span>
+                    </div>
                 </div>
             </div>
-        </header>
-
-        <!-- Dashboard Grid -->
-        <main class="dashboard">
-            <!-- Server Status Cards -->
-            <section class="status-cards">
-                <div class="card">
-                    <div class="card-icon green">
-                        <i class="fas fa-heartbeat"></i>
+            
+            <div class="nav-menu">
+                <div class="nav-item active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                    <div class="nav-indicator"></div>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Usuários</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-link"></i>
+                    <span>Conexões</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-server"></i>
+                    <span>Sistema</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
                     </div>
-                    <div class="card-content">
-                        <h3>Status do Servidor</h3>
-                        <p id="server-status" class="status-text">Online</p>
-                        <small id="uptime">Uptime: Carregando...</small>
+                    <div class="user-info">
+                        <span class="user-name">Admin</span>
+                        <span class="user-role">Administrador</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                    <p class="subtitle">Visão geral do sistema em tempo real</p>
+                </div>
+                <div class="header-right">
+                    <div class="header-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span id="current-time">--:--</span>
+                        </div>
+                        <div class="stat-item">
+                            <div class="status-dot online"></div>
+                            <span>Online</span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-icon" onclick="refreshData()" title="Atualizar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn-icon" onclick="toggleTheme()" title="Alternar tema">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        <button class="btn-danger" onclick="shutdownServer()">
+                            <i class="fas fa-power-off"></i>
+                            <span>Desligar</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Stats Overview -->
+                <section class="stats-overview">
+                    <div class="glass-card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon primary">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="card-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>99.9%</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>Status do Servidor</h3>
+                            <div class="stat-value">
+                                <span id="server-status" class="value">Online</span>
+                                <span class="label">Sistema Operacional</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span id="uptime">Uptime: Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="glass-card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon success">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="card-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+12%</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>Conexões Ativas</h3>
+                            <div class="stat-value">
+                                <span id="active-connections" class="value">0</span>
+                                <span class="label">usuários conectados</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span>Sessões em andamento</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon warning">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="card-trend neutral">
+                                <i class="fas fa-minus"></i>
+                                <span>Hoje</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>Total Hoje</h3>
+                            <div class="stat-value">
+                                <span id="total-today" class="value">0</span>
+                                <span class="label">conexões hoje</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span>Desde 00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon info">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="card-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+3%</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>Performance</h3>
+                            <div class="stat-value">
+                                <span id="performance-score" class="value">95%</span>
+                                <span class="label">score médio</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span>Últimas 24h</span>
+                            </div>
+                        </div>
+                    </section>
+
+            <!-- Enhanced Charts Section -->
+            <section class="charts-grid">
+                <!-- Main Analytics Chart -->
+                <div class="glass-card chart-card main-chart">
+                    <div class="card-header">
+                        <h3>Análise de Conexões</h3>
+                        <div class="chart-controls">
+                            <select id="chart-period" class="glass-select">
+                                <option value="24h">Últimas 24h</option>
+                                <option value="7d">Últimos 7 dias</option>
+                                <option value="30d">Últimos 30 dias</option>
+                            </select>
+                            <button class="glass-btn refresh-btn" onclick="refreshChart()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-content">
+                        <canvas id="connectionsChart" width="800" height="300"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-indicator primary"></div>
+                            <span>Conexões Ativas</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-indicator warning"></div>
+                            <span>Desconexões</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-icon blue">
-                        <i class="fas fa-users"></i>
+                <!-- Performance Metrics -->
+                <section class="metrics-grid">
+                    <div class="glass-card metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon cpu">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>CPU</h4>
+                                <span class="metric-value" id="cpu-usage">0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill cpu" id="cpu-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Cores</span>
+                                <span class="detail-value" id="cpu-cores">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Freq</span>
+                                <span class="detail-value" id="cpu-freq">-</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <h3>Conexões Ativas</h3>
-                        <p id="active-connections" class="metric-number">0</p>
-                        <small>usuários conectados</small>
+                    
+                    <div class="glass-card metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon memory">
+                                <i class="fas fa-memory"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>Memória</h4>
+                                <span class="metric-value" id="memory-usage">0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill memory" id="memory-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Usado</span>
+                                <span class="detail-value" id="memory-used">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Total</span>
+                                <span class="detail-value" id="memory-total">-</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    
+                    <div class="glass-card metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon disk">
+                                <i class="fas fa-hdd"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>Disco</h4>
+                                <span class="metric-value" id="disk-usage">0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill disk" id="disk-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Livre</span>
+                                <span class="detail-value" id="disk-free">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Total</span>
+                                <span class="detail-value" id="disk-total">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon network">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>Rede</h4>
+                                <span class="metric-value" id="network-speed">0 MB/s</span>
+                            </div>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill network" id="network-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Download</span>
+                                <span class="detail-value" id="network-down">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Upload</span>
+                                <span class="detail-value" id="network-up">-</span>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="card">
-                    <div class="card-icon orange">
-                        <i class="fas fa-chart-line"></i>
+                    <!-- Geographic Distribution -->
+                    <div class="metric-card">
+                        <h4>Distribuição Geográfica</h4>
+                        <div class="geo-chart">
+                            <div class="geo-item">
+                                <span class="country">Brasil</span>
+                                <div class="geo-bar">
+                                    <div class="geo-fill" style="width: 65%;"></div>
+                                </div>
+                                <span class="percentage">65%</span>
+                            </div>
+                            <div class="geo-item">
+                                <span class="country">EUA</span>
+                                <div class="geo-bar">
+                                    <div class="geo-fill" style="width: 20%;"></div>
+                                </div>
+                                <span class="percentage">20%</span>
+                            </div>
+                            <div class="geo-item">
+                                <span class="country">Europa</span>
+                                <div class="geo-bar">
+                                    <div class="geo-fill" style="width: 15%;"></div>
+                                </div>
+                                <span class="percentage">15%</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <h3>Total Hoje</h3>
-                        <p id="total-today" class="metric-number">0</p>
-                        <small>conexões hoje</small>
-                    </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-icon purple">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Tempo Médio</h3>
-                        <p id="avg-session" class="metric-number">0min</p>
-                        <small>duração da sessão</small>
-                    </div>
+                    <!-- Connection Types -->
+                    <div class="metric-card">
+                         <h4>Tipos de Conexão</h4>
+                         <div class="donut-chart">
+                             <div class="chart-container" style="height: 200px; position: relative;">
+                                 <canvas id="donutChart"></canvas>
+                             </div>
+                             <div class="donut-center">
+                                 <div class="donut-total" id="donutTotal">156</div>
+                                 <div class="donut-label">Total</div>
+                             </div>
+                             <div class="donut-legend">
+                                 <div class="legend-item">
+                                     <span class="legend-color" style="background: #10b981;"></span>
+                                     <span>Desktop (<span id="desktopPercentage">60</span>%)</span>
+                                 </div>
+                                 <div class="legend-item">
+                                     <span class="legend-color" style="background: #f59e0b;"></span>
+                                     <span>Mobile (<span id="mobilePercentage">30</span>%)</span>
+                                 </div>
+                                 <div class="legend-item">
+                                     <span class="legend-color" style="background: #6b7280;"></span>
+                                     <span>Tablet (<span id="tabletPercentage">10</span>%)</span>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
                 </div>
             </section>
 
-            <!-- Charts Section -->
-            <section class="charts-section">
-                <div class="chart-card">
-                    <h3>Conexões por Hora</h3>
-                    <canvas id="connectionsChart" width="400" height="200"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3>Uso de Recursos</h3>
-                    <div class="resource-meters">
-                        <div class="meter">
-                            <label>CPU</label>
-                            <div class="meter-bar">
-                                <div id="cpu-usage" class="meter-fill" style="width: 0%"></div>
-                            </div>
-                            <span id="cpu-percent">0%</span>
-                        </div>
-                        <div class="meter">
-                            <label>Memória</label>
-                            <div class="meter-bar">
-                                <div id="memory-usage" class="meter-fill" style="width: 0%"></div>
-                            </div>
-                            <span id="memory-percent">0%</span>
-                        </div>
-                        <div class="meter">
-                            <label>Disco</label>
-                            <div class="meter-bar">
-                                <div id="disk-usage" class="meter-fill" style="width: 0%"></div>
-                            </div>
-                            <span id="disk-percent">0%</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Active Connections Table -->
+            <!-- Active Connections Cards -->
             <section class="connections-section">
                 <div class="section-header">
                     <h3>Conexões Ativas</h3>
-                    <button class="btn btn-sm" onclick="loadConnections()">
-                        <i class="fas fa-refresh"></i>
-                    </button>
+                    <div class="header-actions">
+                        <button class="glass-btn" onclick="loadConnections()" title="Atualizar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="glass-btn" onclick="toggleConnectionsView()" title="Alternar visualização">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <table class="connections-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Usuário</th>
-                                <th>IP</th>
-                                <th>Início</th>
-                                <th>Duração</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="connections-tbody">
-                            <tr>
-                                <td colspan="7" class="loading">Carregando conexões...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="connections-grid" id="connections-grid">
+                    <div class="loading-card glass-card">
+                        <div class="loading-content">
+                            <div class="spinner"></div>
+                            <p>Carregando conexões...</p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- Users Management -->
+            <!-- Users Management Cards -->
             <section class="users-section">
                 <div class="section-header">
                     <h3>Gerenciamento de Usuários</h3>
-                    <button class="btn btn-primary" onclick="showCreateUserModal()">
-                        <i class="fas fa-plus"></i>
-                        Novo Usuário
-                    </button>
+                    <div class="header-actions">
+                        <button class="glass-btn btn-primary" onclick="showCreateUserModal()">
+                            <i class="fas fa-plus"></i>
+                            Novo Usuário
+                        </button>
+                        <button class="glass-btn" onclick="loadUsers()" title="Atualizar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="glass-btn" onclick="toggleUsersView()" title="Alternar visualização">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <table class="users-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nome de Usuário</th>
-                                <th>Email</th>
-                                <th>Função</th>
-                                <th>Status</th>
-                                <th>Último Login</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-tbody">
-                            <tr>
-                                <td colspan="7" class="loading">Carregando usuários...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="users-grid" id="users-grid">
+                    <div class="loading-card glass-card">
+                        <div class="loading-content">
+                            <div class="spinner"></div>
+                            <p>Carregando usuários...</p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
             <!-- Server Logs -->
-            <section class="logs-section">
+            <section class="logs-section glass-card">
                 <div class="section-header">
-                    <h3>Logs do Servidor</h3>
+                    <h3><i class="fas fa-file-alt"></i> Logs do Servidor</h3>
                     <div class="log-controls">
-                        <select id="log-level">
-                            <option value="all">Todos os Níveis</option>
-                            <option value="error">Erro</option>
-                            <option value="warning">Aviso</option>
-                            <option value="info">Informação</option>
-                        </select>
-                        <button class="btn btn-sm" onclick="clearLogs()">
-                            <i class="fas fa-trash"></i>
-                            Limpar
-                        </button>
+                        <div class="filter-group">
+                            <label for="log-level">Filtrar por nível:</label>
+                            <select id="log-level" class="glass-select">
+                                <option value="all">Todos os Níveis</option>
+                                <option value="error">Erro</option>
+                                <option value="warning">Aviso</option>
+                                <option value="info">Informação</option>
+                                <option value="debug">Debug</option>
+                            </select>
+                        </div>
+                        <div class="log-actions">
+                            <button class="glass-btn" onclick="refreshLogs()" title="Atualizar logs">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="glass-btn btn-danger" onclick="clearLogs()" title="Limpar logs">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="glass-btn" onclick="exportLogs()" title="Exportar logs">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="logs-container" id="logs-container">
                     <div class="log-entry info">
-                        <span class="log-time">2025-08-01 23:33:58</span>
-                        <span class="log-level">INFO</span>
-                        <span class="log-message">Servidor iniciado com sucesso</span>
+                        <div class="log-indicator"></div>
+                        <div class="log-content">
+                            <span class="log-time">2025-08-01 23:33:58</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Servidor iniciado com sucesso</span>
+                        </div>
                     </div>
+                    <div class="log-entry info">
+                        <div class="log-indicator"></div>
+                        <div class="log-content">
+                            <span class="log-time">02/08/2025, 20:49:29</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Dashboard carregado com sucesso</span>
+                        </div>
+                    </div>
+                    <div class="log-entry warning">
+                        <div class="log-indicator"></div>
+                        <div class="log-content">
+                            <span class="log-time">02/08/2025, 20:50:15</span>
+                            <span class="log-level warning">WARN</span>
+                            <span class="log-message">Tentativa de conexão de IP não autorizado: 192.168.1.999</span>
+                        </div>
+                    </div>
+                    <div class="log-entry error">
+                        <div class="log-indicator"></div>
+                        <div class="log-content">
+                            <span class="log-time">02/08/2025, 20:51:02</span>
+                            <span class="log-level error">ERROR</span>
+                            <span class="log-message">Falha na autenticação do usuário: admin</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="logs-footer">
+                    <span class="logs-count">Exibindo 4 de 127 logs</span>
+                    <button class="glass-btn btn-sm" onclick="loadMoreLogs()">
+                        <i class="fas fa-chevron-down"></i>
+                        Carregar mais
+                    </button>
                 </div>
             </section>
         </main>
@@ -204,36 +525,75 @@
 
     <!-- Create User Modal -->
     <div id="createUserModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-modal">
             <div class="modal-header">
-                <h3>Criar Novo Usuário</h3>
-                <button class="close-btn" onclick="closeCreateUserModal()">
+                <div class="modal-title">
+                    <i class="fas fa-user-plus"></i>
+                    <h3>Criar Novo Usuário</h3>
+                </div>
+                <button class="close-btn glass-btn" onclick="closeCreateUserModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form id="createUserForm">
-                <div class="form-group">
-                    <label for="username">Nome de Usuário</label>
-                    <input type="text" id="username" name="username" required>
+            <form id="createUserForm" class="glass-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">
+                            <i class="fas fa-user"></i>
+                            Nome de Usuário
+                        </label>
+                        <input type="text" id="username" name="username" class="glass-input" placeholder="Digite o nome de usuário" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <input type="email" id="email" name="email" class="glass-input" placeholder="usuario@exemplo.com" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i>
+                            Senha
+                        </label>
+                        <div class="password-input-group">
+                            <input type="password" id="password" name="password" class="glass-input" placeholder="Digite a senha" required>
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">
+                            <i class="fas fa-user-tag"></i>
+                            Função
+                        </label>
+                        <select id="role" name="role" class="glass-select">
+                            <option value="User">Usuário</option>
+                            <option value="Admin">Administrador</option>
+                            <option value="Moderator">Moderador</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="role">Função</label>
-                    <select id="role" name="role">
-                        <option value="User">Usuário</option>
-                        <option value="Admin">Administrador</option>
-                    </select>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sendWelcomeEmail" name="sendWelcomeEmail" checked>
+                        <span class="checkmark"></span>
+                        Enviar email de boas-vindas
+                    </label>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-outline" onclick="closeCreateUserModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                    <button type="button" class="glass-btn btn-outline" onclick="closeCreateUserModal()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="glass-btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Criar Usuário
+                    </button>
                 </div>
             </form>
         </div>

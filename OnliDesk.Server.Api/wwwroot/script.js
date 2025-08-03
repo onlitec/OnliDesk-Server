@@ -4,24 +4,41 @@ let isInitializing = false;
 let lastChartData = null; // Cache for chart data to avoid unnecessary updates
 const API_BASE_URL = window.location.origin;
 
-// Initialize the dashboard
+// Initialize the enhanced dashboard
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded');
     
-    // Initialize dashboard directly without Chart.js dependency
-    initializeDashboard();
+    // Initialize glassmorphism dashboard
+    initializeGlassmorphismDashboard();
     setupEventListeners();
     startAutoRefresh();
+    initializeEnhancedCharts();
+    loadEnhancedMetrics();
+    
+    // Start real-time clock
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+    
+    // Chart period selector
+    const chartPeriodSelect = document.getElementById('chart-period');
+    if (chartPeriodSelect) {
+        chartPeriodSelect.addEventListener('change', function() {
+            updateChartsForPeriod(this.value);
+        });
+    }
+    
+    // Initialize sidebar navigation
+    initializeSidebarNavigation();
 });
 
-function initializeDashboard() {
+function initializeGlassmorphismDashboard() {
     if (isInitializing) {
         console.log('Dashboard initialization already in progress, skipping...');
         return;
     }
     
     isInitializing = true;
-    console.log('Starting dashboard initialization...');
+    console.log('Starting glassmorphism dashboard initialization...');
     showLoading(true);
     
     // Safety timeout to ensure loading overlay is removed
@@ -59,12 +76,20 @@ function initializeDashboard() {
                 console.error('Error loading system metrics:', e);
                 addLogEntry('error', 'Erro ao carregar métricas do sistema');
                 return null;
+            }),
+            loadServerLogs().catch(e => {
+                console.error('Error loading server logs:', e);
+                addLogEntry('error', 'Erro ao carregar logs do servidor');
+                return null;
             })
         ]).then(() => {
              console.log('All data loaded successfully');
              clearTimeout(safetyTimeout);
              showLoading(false);
              isInitializing = false;
+             initializeGlassmorphismEffects();
+             animateCards();
+             setupLogEventListeners();
              addLogEntry('info', 'Dashboard carregado com sucesso');
          }).catch(error => {
              console.error('Critical error during data loading:', error);
@@ -84,10 +109,26 @@ function initializeDashboard() {
 
 function setupEventListeners() {
     // Create user form submission
-    document.getElementById('createUserForm').addEventListener('submit', handleCreateUser);
+    const createUserForm = document.getElementById('createUserForm');
+    if (createUserForm) {
+        createUserForm.addEventListener('submit', handleCreateUser);
+    }
     
     // Log level filter
-    document.getElementById('log-level').addEventListener('change', filterLogs);
+    const logLevel = document.getElementById('log-level');
+    if (logLevel) {
+        logLevel.addEventListener('change', filterLogs);
+    }
+    
+    // Glass button hover effects
+    document.querySelectorAll('.glass-btn').forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
     
     // Modal close on outside click
     document.getElementById('createUserModal').addEventListener('click', function(e) {
@@ -101,7 +142,341 @@ function startAutoRefresh() {
     // Refresh data every 60 seconds to reduce performance impact
     refreshInterval = setInterval(() => {
         refreshData();
+        updateEnhancedMetrics();
+        updateCharts();
     }, 60000);
+}
+
+// Enhanced Charts Initialization
+function initializeEnhancedCharts() {
+    const canvas = document.getElementById('connectionsChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Create enhanced line chart
+    window.connectionsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: generateTimeLabels(24),
+            datasets: [{
+                label: 'Conexões Ativas',
+                data: generateRandomData(24, 10, 50),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }, {
+                label: 'Desconexões',
+                data: generateRandomData(24, 2, 15),
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#f59e0b',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#667eea',
+                    borderWidth: 1,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        font: {
+                            size: 12
+                        }
+                    },
+                    beginAtZero: true
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            elements: {
+                line: {
+                    borderWidth: 2
+                }
+            }
+        }
+    });
+    
+    // Initialize donut chart for connection types
+    initializeDonutChart();
+}
+
+// Generate time labels
+function generateTimeLabels(hours) {
+    const labels = [];
+    const now = new Date();
+    
+    for (let i = hours - 1; i >= 0; i--) {
+        const time = new Date(now.getTime() - (i * 60 * 60 * 1000));
+        labels.push(time.getHours().toString().padStart(2, '0') + ':00');
+    }
+    
+    return labels;
+}
+
+// Generate random data for demonstration
+function generateRandomData(count, min, max) {
+    const data = [];
+    for (let i = 0; i < count; i++) {
+        data.push(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+    return data;
+}
+
+// Initialize donut chart
+function initializeDonutChart() {
+    const donutCanvas = document.getElementById('donutChart');
+    if (!donutCanvas) return;
+    
+    const donutCtx = donutCanvas.getContext('2d');
+    
+    window.donutChart = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Desktop', 'Mobile', 'Tablet'],
+            datasets: [{
+                data: [60, 30, 10],
+                backgroundColor: [
+                    '#10b981',
+                    '#f59e0b',
+                    '#6b7280'
+                ],
+                borderWidth: 0,
+                cutout: '70%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#10b981',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            onHover: (event, activeElements) => {
+                event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+            }
+        }
+    });
+    
+    // Update the center total
+    updateDonutTotal();
+}
+
+// Update donut chart total
+function updateDonutTotal() {
+    if (window.donutChart) {
+        const data = window.donutChart.data.datasets[0].data;
+        const total = data.reduce((a, b) => a + b, 0);
+        const totalElement = document.getElementById('donutTotal');
+        if (totalElement) {
+            totalElement.textContent = total;
+        }
+        
+        // Update percentages in legend
+        data.forEach((value, index) => {
+            const percentage = Math.round((value / total) * 100);
+            const percentageElements = [
+                document.getElementById('desktopPercentage'),
+                document.getElementById('mobilePercentage'),
+                document.getElementById('tabletPercentage')
+            ];
+            
+            if (percentageElements[index]) {
+                percentageElements[index].textContent = percentage;
+            }
+        });
+    }
+}
+
+// Load enhanced metrics
+function loadEnhancedMetrics() {
+    // Simulate enhanced metrics data
+    updateMetricValue('requests-per-minute', Math.floor(Math.random() * 100) + 50);
+    updateMetricValue('response-time', Math.floor(Math.random() * 50) + 25 + 'ms');
+    
+    // Update geographic distribution with animation
+    animateGeographicBars();
+    
+    // Update donut chart
+    updateDonutChart();
+}
+
+// Update enhanced metrics
+function updateEnhancedMetrics() {
+    // Simulate real-time updates
+    const requestsPerMin = Math.floor(Math.random() * 100) + 50;
+    const responseTime = Math.floor(Math.random() * 50) + 25;
+    
+    updateMetricValue('requests-per-minute', requestsPerMin);
+    updateMetricValue('response-time', responseTime + 'ms');
+    
+    // Update trends
+    updateTrendIndicators();
+}
+
+// Update metric value with animation
+function updateMetricValue(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.transform = 'scale(1.1)';
+        element.textContent = value;
+        setTimeout(() => {
+            element.style.transform = 'scale(1)';
+        }, 200);
+    }
+}
+
+// Animate geographic bars
+function animateGeographicBars() {
+    const geoBars = document.querySelectorAll('.geo-fill');
+    geoBars.forEach((bar, index) => {
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease-out';
+            bar.style.width = bar.style.width; // Trigger animation
+        }, index * 200);
+    });
+}
+
+// Update donut chart data
+function updateDonutChart() {
+    const donutTotal = document.querySelector('.donut-total');
+    if (donutTotal) {
+        const total = Math.floor(Math.random() * 50) + 150;
+        donutTotal.textContent = total;
+    }
+}
+
+// Update trend indicators
+function updateTrendIndicators() {
+    const trends = document.querySelectorAll('.status-trend');
+    trends.forEach(trend => {
+        const isPositive = Math.random() > 0.3; // 70% chance of positive trend
+        const span = trend.querySelector('span');
+        
+        if (span && !span.textContent.includes('%') && !span.textContent.includes('ms') && !span.textContent.includes('/')) {
+            const value = Math.floor(Math.random() * 20) + 1;
+            span.textContent = isPositive ? `+${value}%` : `-${value}%`;
+            
+            trend.className = trend.className.replace(/positive|negative|neutral/, '');
+            trend.classList.add(isPositive ? 'positive' : 'negative');
+        }
+    });
+}
+
+// Update charts for different time periods
+function updateChartsForPeriod(period) {
+    if (!window.connectionsChart) return;
+    
+    let hours, labels, data1, data2;
+    
+    switch(period) {
+        case '24h':
+            hours = 24;
+            labels = generateTimeLabels(24);
+            data1 = generateRandomData(24, 10, 50);
+            data2 = generateRandomData(24, 2, 15);
+            break;
+        case '7d':
+            hours = 7;
+            labels = generateDayLabels(7);
+            data1 = generateRandomData(7, 100, 500);
+            data2 = generateRandomData(7, 20, 150);
+            break;
+        case '30d':
+            hours = 30;
+            labels = generateDayLabels(30);
+            data1 = generateRandomData(30, 200, 800);
+            data2 = generateRandomData(30, 50, 300);
+            break;
+    }
+    
+    window.connectionsChart.data.labels = labels;
+    window.connectionsChart.data.datasets[0].data = data1;
+    window.connectionsChart.data.datasets[1].data = data2;
+    window.connectionsChart.update('active');
+}
+
+// Generate day labels
+function generateDayLabels(days) {
+    const labels = [];
+    const now = new Date();
+    
+    for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
+        labels.push((date.getMonth() + 1) + '/' + date.getDate());
+    }
+    
+    return labels;
+}
+
+// Update charts (for auto-refresh)
+function updateCharts() {
+    if (window.connectionsChart) {
+        const currentPeriod = document.getElementById('chart-period')?.value || '24h';
+        updateChartsForPeriod(currentPeriod);
+    }
 }
 
 function stopAutoRefresh() {
@@ -175,13 +550,24 @@ async function loadConnections() {
         // Use mock data for detailed connections since /api/connections requires authentication
         const mockConnections = generateMockConnections();
         updateConnectionsTable(mockConnections);
+        updateConnectionsGrid(mockConnections);
         // Mock data loaded silently
     } catch (error) {
-        // Fallback to mock data
+        // Fallback to mock data for both table and cards
         const mockConnections = generateMockConnections();
         updateConnectionsTable(mockConnections);
+        updateConnectionsGrid(mockConnections);
         updateConnectionsMetrics(mockConnections);
-        // Using mock data silently
+        
+        // Also update glassmorphism cards with mock summary
+        const mockSummary = {
+            activeConnections: 24,
+            totalToday: 156,
+            averageSessionDuration: '12min'
+        };
+        updateConnectionsMetricsFromSummary(mockSummary);
+        
+        addLogEntry('error', 'Erro ao carregar conexões - usando dados mock');
     }
 }
 
@@ -191,13 +577,20 @@ function generateMockConnections() {
     const ips = ['192.168.1.100', '192.168.1.101', '10.0.0.50', '172.16.0.10'];
     
     for (let i = 0; i < Math.floor(Math.random() * 8) + 2; i++) {
+        const startTime = new Date(Date.now() - Math.random() * 3600000);
+        const isActive = Math.random() > 0.2;
+        
         connections.push({
             id: i + 1,
             userId: Math.floor(Math.random() * 100) + 1,
             username: usernames[Math.floor(Math.random() * usernames.length)],
+            user: usernames[Math.floor(Math.random() * usernames.length)], // For card compatibility
             ipAddress: ips[Math.floor(Math.random() * ips.length)],
-            startTime: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-            isActive: Math.random() > 0.2
+            ip: ips[Math.floor(Math.random() * ips.length)], // For card compatibility
+            startTime: startTime.toISOString(),
+            duration: calculateDuration(startTime.toISOString()),
+            isActive: isActive,
+            status: isActive ? 'Ativo' : 'Inativo'
         });
     }
     
@@ -206,6 +599,11 @@ function generateMockConnections() {
 
 function updateConnectionsTable(connections) {
     const tbody = document.getElementById('connections-tbody');
+    
+    // Check if table element exists (for backward compatibility)
+    if (!tbody) {
+        return;
+    }
     
     if (connections.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="loading">Nenhuma conexão ativa</td></tr>';
@@ -240,15 +638,35 @@ function updateConnectionsMetrics(connections) {
     const totalToday = connections.length;
     const avgDuration = calculateAverageSessionDuration(connections);
     
-    document.getElementById('active-connections').textContent = activeConnections;
-    document.getElementById('total-today').textContent = totalToday;
-    document.getElementById('avg-session').textContent = avgDuration;
+    // Update glassmorphism stat cards
+    updateStatCard('active-connections-card', activeConnections, 'positive', '+12%');
+    updateStatCard('total-today-card', totalToday, 'positive', '+8%');
+    updateStatCard('performance-card', 98, 'positive', '+2%');
+    
+    // Update individual elements if they exist (fallback)
+    const activeElement = document.getElementById('active-connections');
+    const totalElement = document.getElementById('total-today');
+    const avgElement = document.getElementById('avg-session');
+    
+    if (activeElement) activeElement.textContent = activeConnections;
+    if (totalElement) totalElement.textContent = totalToday;
+    if (avgElement) avgElement.textContent = avgDuration;
 }
 
 function updateConnectionsMetricsFromSummary(summary) {
-    document.getElementById('active-connections').textContent = summary.activeConnections;
-    document.getElementById('total-today').textContent = summary.totalToday;
-    document.getElementById('avg-session').textContent = summary.averageSessionDuration;
+    // Update glassmorphism stat cards
+    updateStatCard('active-connections-card', summary.activeConnections || 0, 'positive', '+12%');
+    updateStatCard('total-today-card', summary.totalToday || 0, 'positive', '+8%');
+    updateStatCard('performance-card', 98, 'positive', '+2%');
+    
+    // Update individual elements if they exist
+    const activeElement = document.getElementById('active-connections');
+    const totalElement = document.getElementById('total-today');
+    const avgElement = document.getElementById('avg-session');
+    
+    if (activeElement) activeElement.textContent = summary.activeConnections;
+    if (totalElement) totalElement.textContent = summary.totalToday;
+    if (avgElement) avgElement.textContent = summary.averageSessionDuration;
 }
 
 function calculateDuration(startTime) {
@@ -279,6 +697,7 @@ async function loadUsers() {
     // Always use mock data for demonstration since /api/users requires authentication
     const mockUsers = generateMockUsers();
     updateUsersTable(mockUsers);
+    updateUsersGrid(mockUsers);
     // Loading mock users silently
 }
 
@@ -290,7 +709,8 @@ function generateMockUsers() {
             email: 'admin@onlidesk.com',
             role: 'Admin',
             isActive: true,
-            lastLogin: new Date(Date.now() - 3600000).toISOString()
+            status: 'Ativo',
+            lastLogin: formatDateTime(new Date(Date.now() - 3600000).toISOString())
         },
         {
             id: 2,
@@ -298,7 +718,8 @@ function generateMockUsers() {
             email: 'user1@example.com',
             role: 'User',
             isActive: true,
-            lastLogin: new Date(Date.now() - 7200000).toISOString()
+            status: 'Ativo',
+            lastLogin: formatDateTime(new Date(Date.now() - 7200000).toISOString())
         },
         {
             id: 3,
@@ -306,13 +727,19 @@ function generateMockUsers() {
             email: 'guest@example.com',
             role: 'User',
             isActive: false,
-            lastLogin: new Date(Date.now() - 86400000).toISOString()
+            status: 'Inativo',
+            lastLogin: formatDateTime(new Date(Date.now() - 86400000).toISOString())
         }
     ];
 }
 
 function updateUsersTable(users) {
     const tbody = document.getElementById('users-tbody');
+    
+    // Check if table element exists (for backward compatibility)
+    if (!tbody) {
+        return;
+    }
     
     if (users.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="loading">Nenhum usuário encontrado</td></tr>';
@@ -357,19 +784,46 @@ async function loadSystemMetrics() {
             disk: Math.floor(Math.random() * 60) + 30
         };
         updateSystemMetrics(metrics);
-        // System metrics error - using mock data silently
+        addLogEntry('error', 'Erro ao carregar métricas - usando dados mock');
     }
 }
 
 function updateSystemMetrics(metrics) {
-    document.getElementById('cpu-usage').style.width = `${metrics.cpu}%`;
-    document.getElementById('cpu-percent').textContent = `${metrics.cpu}%`;
+    // Update glassmorphism metric cards
+    updateMetricCard('cpu', metrics.cpu, {
+        'used': `${metrics.cpu}%`,
+        'cores': '8 cores'
+    });
     
-    document.getElementById('memory-usage').style.width = `${metrics.memory}%`;
-    document.getElementById('memory-percent').textContent = `${metrics.memory}%`;
+    updateMetricCard('memory', metrics.memory, {
+        'used': `${(metrics.memory * 16 / 100).toFixed(1)}GB`,
+        'total': '16GB'
+    });
     
-    document.getElementById('disk-usage').style.width = `${metrics.disk}%`;
-    document.getElementById('disk-percent').textContent = `${metrics.disk}%`;
+    updateMetricCard('disk', metrics.disk, {
+        'used': `${(metrics.disk * 500 / 100).toFixed(0)}GB`,
+        'total': '500GB'
+    });
+    
+    updateMetricCard('network', Math.floor(Math.random() * 80) + 10, {
+        'upload': '2.4 MB/s',
+        'download': '15.8 MB/s'
+    });
+    
+    // Fallback for legacy elements if they exist
+    const cpuUsage = document.getElementById('cpu-usage');
+    const cpuPercent = document.getElementById('cpu-percent');
+    const memoryUsage = document.getElementById('memory-usage');
+    const memoryPercent = document.getElementById('memory-percent');
+    const diskUsage = document.getElementById('disk-usage');
+    const diskPercent = document.getElementById('disk-percent');
+    
+    if (cpuUsage) cpuUsage.style.width = `${metrics.cpu}%`;
+    if (cpuPercent) cpuPercent.textContent = `${metrics.cpu}%`;
+    if (memoryUsage) memoryUsage.style.width = `${metrics.memory}%`;
+    if (memoryPercent) memoryPercent.textContent = `${metrics.memory}%`;
+    if (diskUsage) diskUsage.style.width = `${metrics.disk}%`;
+    if (diskPercent) diskPercent.textContent = `${metrics.disk}%`;
 }
 
 // Chart Functions
@@ -931,3 +1385,583 @@ window.addEventListener('error', function(e) {
 window.addEventListener('unhandledrejection', function(e) {
     addLogEntry('error', `Promise rejeitada: ${e.reason}`);
 });
+
+// Glassmorphism Dashboard Functions
+function updateDateTime() {
+    const now = new Date();
+    const timeElement = document.querySelector('.current-time');
+    const dateElement = document.querySelector('.current-date');
+    
+    if (timeElement) {
+        timeElement.textContent = now.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+    
+    if (dateElement) {
+        dateElement.textContent = now.toLocaleDateString('pt-BR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+}
+
+function initializeSidebarNavigation() {
+    // Add active state to current nav item
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Remove active class from all items
+            navItems.forEach(nav => nav.classList.remove('active'));
+            // Add active class to clicked item
+            this.classList.add('active');
+        });
+    });
+    
+    // Set dashboard as active by default
+    const dashboardNav = document.querySelector('.nav-item[href="#dashboard"]');
+    if (dashboardNav) {
+        dashboardNav.classList.add('active');
+    }
+}
+
+// Enhanced card animations
+function animateCards() {
+    const cards = document.querySelectorAll('.glass-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-in');
+    });
+}
+
+// Update stat cards with glassmorphism effects
+function updateStatCard(cardId, value, trend = null, trendValue = null) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    
+    const valueElement = card.querySelector('.value');
+    const trendElement = card.querySelector('.card-trend');
+    
+    if (valueElement) {
+        // Animate number change
+        const currentValue = parseInt(valueElement.textContent) || 0;
+        animateNumber(valueElement, currentValue, value, 1000);
+    }
+    
+    if (trendElement && trend && trendValue) {
+        trendElement.className = `card-trend ${trend}`;
+        const icon = trend === 'positive' ? '↗' : trend === 'negative' ? '↘' : '→';
+        trendElement.innerHTML = `${icon} ${trendValue}`;
+    }
+}
+
+// Animate number changes
+function animateNumber(element, start, end, duration) {
+    const startTime = performance.now();
+    const difference = end - start;
+    
+    function updateNumber(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const current = Math.floor(start + (difference * easeOutCubic(progress)));
+        element.textContent = current.toLocaleString('pt-BR');
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateNumber);
+        }
+    }
+    
+    requestAnimationFrame(updateNumber);
+}
+
+// Easing function for smooth animations
+function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+}
+
+// Enhanced metric updates with glassmorphism
+function updateMetricCard(cardId, percentage, details = {}) {
+    const card = document.querySelector(`[data-metric="${cardId}"]`);
+    if (!card) return;
+    
+    const valueElement = card.querySelector('.metric-value');
+    const progressFill = card.querySelector('.progress-fill');
+    const detailElements = card.querySelectorAll('.detail-value');
+    
+    if (valueElement) {
+        valueElement.textContent = `${percentage}%`;
+    }
+    
+    if (progressFill) {
+        progressFill.style.width = `${percentage}%`;
+    }
+    
+    // Update detail values
+    Object.keys(details).forEach((key, index) => {
+        if (detailElements[index]) {
+            detailElements[index].textContent = details[key];
+        }
+    });
+}
+
+// Responsive sidebar toggle for mobile
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
+    }
+}
+
+// Initialize glassmorphism effects
+function initializeGlassmorphismEffects() {
+    // Add intersection observer for card animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+            }
+        });
+    });
+    
+    document.querySelectorAll('.glass-card').forEach(card => {
+        observer.observe(card);
+    });
+    
+    // Add parallax effect to background
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const bgElements = document.querySelector('.bg-elements');
+        if (bgElements) {
+            bgElements.style.transform = `translateY(${scrolled * 0.5}px)`;
+        }
+    });
+}
+
+// Functions for connection cards
+function createConnectionCard(connection) {
+    return `
+        <div class="connection-card">
+            <div class="connection-header">
+                <div class="connection-id">#${connection.id}</div>
+                <div class="connection-status ${connection.status.toLowerCase()}">
+                    <span class="status-dot"></span>
+                    ${connection.status}
+                </div>
+            </div>
+            <div class="connection-info">
+                <div class="info-item">
+                    <span class="info-label">Usuário:</span>
+                    <span class="info-value">${connection.user}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">IP:</span>
+                    <span class="info-value">${connection.ip}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Início:</span>
+                    <span class="info-value">${connection.startTime}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Duração:</span>
+                    <span class="info-value">${connection.duration}</span>
+                </div>
+            </div>
+            <div class="connection-actions">
+                <button class="action-btn view" onclick="viewConnectionDetails(${connection.id})" title="Ver detalhes">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn refresh" onclick="refreshConnection(${connection.id})" title="Atualizar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="action-btn disconnect" onclick="disconnectUser(${connection.id})" title="Desconectar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function createUserCard(user) {
+    return `
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-id">#${user.id}</div>
+                <div class="user-status ${user.status.toLowerCase()}">
+                    <span class="status-dot"></span>
+                    ${user.status}
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="info-item">
+                    <span class="info-label">Nome:</span>
+                    <span class="info-value">${user.username}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">${user.email}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Função:</span>
+                    <span class="info-value">${user.role}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Último Login:</span>
+                    <span class="info-value">${user.lastLogin}</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="action-btn view" onclick="viewUserDetails(${user.id})" title="Ver detalhes">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn edit" onclick="editUser(${user.id})" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn reset" onclick="resetUserPassword(${user.id})" title="Resetar senha">
+                    <i class="fas fa-key"></i>
+                </button>
+                <button class="action-btn delete" onclick="deleteUser(${user.id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function updateConnectionsGrid(connections) {
+    const connectionsGrid = document.getElementById('connections-grid');
+    const connectionsTable = document.getElementById('connections-table');
+    
+    if (connectionsGrid) {
+        if (connections && connections.length > 0) {
+            connectionsGrid.innerHTML = connections.map(connection => createConnectionCard(connection)).join('');
+        } else {
+            connectionsGrid.innerHTML = '<div class="no-data">Nenhuma conexão ativa encontrada</div>';
+        }
+    }
+    
+    // Update table as well for backward compatibility
+    if (connectionsTable && connections) {
+        updateConnectionsTable(connections);
+    }
+}
+
+function updateUsersGrid(users) {
+    const usersGrid = document.getElementById('users-grid');
+    const usersTable = document.getElementById('users-table');
+    
+    if (usersGrid) {
+        if (users && users.length > 0) {
+            usersGrid.innerHTML = users.map(user => createUserCard(user)).join('');
+        } else {
+            usersGrid.innerHTML = '<div class="no-data">Nenhum usuário encontrado</div>';
+        }
+    }
+    
+    // Update table as well for backward compatibility
+    if (usersTable && users) {
+        updateUsersTable(users);
+    }
+}
+
+function toggleConnectionsView() {
+    const connectionsGrid = document.getElementById('connections-grid');
+    const connectionsTable = document.getElementById('connections-table');
+    const toggleBtn = document.querySelector('#connections-section .toggle-view-btn');
+    
+    if (connectionsGrid && connectionsTable && toggleBtn) {
+        if (connectionsGrid.style.display === 'none') {
+            connectionsGrid.style.display = 'grid';
+            connectionsTable.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-table"></i> Visualização em Tabela';
+        } else {
+            connectionsGrid.style.display = 'none';
+            connectionsTable.style.display = 'block';
+            toggleBtn.innerHTML = '<i class="fas fa-th-large"></i> Visualização em Cards';
+        }
+    }
+}
+
+function toggleUsersView() {
+    const usersGrid = document.getElementById('users-grid');
+    const usersTable = document.getElementById('users-table');
+    const toggleBtn = document.querySelector('#users-section .toggle-view-btn');
+    
+    if (usersGrid && usersTable && toggleBtn) {
+        if (usersGrid.style.display === 'none') {
+            usersGrid.style.display = 'grid';
+            usersTable.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-table"></i> Visualização em Tabela';
+        } else {
+            usersGrid.style.display = 'none';
+            usersTable.style.display = 'block';
+            toggleBtn.innerHTML = '<i class="fas fa-th-large"></i> Visualização em Cards';
+        }
+    }
+}
+
+// Action functions for connections
+function viewConnectionDetails(connectionId) {
+    console.log('Visualizando detalhes da conexão:', connectionId);
+    // Implementar modal ou página de detalhes
+    alert(`Detalhes da conexão #${connectionId}`);
+}
+
+function refreshConnection(connectionId) {
+    console.log('Atualizando conexão:', connectionId);
+    // Implementar atualização específica da conexão
+    loadConnections();
+}
+
+// Action functions for users
+function viewUserDetails(userId) {
+    console.log('Visualizando detalhes do usuário:', userId);
+    // Implementar modal ou página de detalhes
+    alert(`Detalhes do usuário #${userId}`);
+}
+
+function resetUserPassword(userId) {
+    if (confirm('Tem certeza que deseja resetar a senha deste usuário?')) {
+        console.log('Resetando senha do usuário:', userId);
+        // Implementar reset de senha
+        alert(`Senha do usuário #${userId} foi resetada`);
+    }
+}
+
+// Server Logs Functions
+async function loadServerLogs() {
+    try {
+        // Try to fetch real logs from API
+        const response = await apiCall('/api/logs');
+        if (response.ok) {
+            const logs = await response.json();
+            updateLogsContainer(logs);
+        } else {
+            throw new Error('Failed to fetch logs');
+        }
+    } catch (error) {
+        console.warn('Failed to load server logs, using mock data:', error);
+        // Use mock data if API fails
+        const mockLogs = generateMockLogs();
+        updateLogsContainer(mockLogs);
+    }
+}
+
+function generateMockLogs() {
+    const levels = ['info', 'warning', 'error', 'debug'];
+    const messages = [
+        'Servidor iniciado com sucesso',
+        'Dashboard carregado com sucesso',
+        'Tentativa de conexão de IP não autorizado: 192.168.1.999',
+        'Falha na autenticação do usuário: admin',
+        'Backup automático concluído',
+        'Conexão estabelecida com banco de dados',
+        'Cache limpo automaticamente',
+        'Usuário admin fez login',
+        'Configuração atualizada',
+        'Sistema de monitoramento ativo'
+    ];
+    
+    const logs = [];
+    for (let i = 0; i < 20; i++) {
+        const date = new Date();
+        date.setMinutes(date.getMinutes() - i * 5);
+        
+        logs.push({
+            id: i + 1,
+            timestamp: date.toISOString(),
+            level: levels[Math.floor(Math.random() * levels.length)],
+            message: messages[Math.floor(Math.random() * messages.length)]
+        });
+    }
+    
+    return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+}
+
+function updateLogsContainer(logs) {
+    const container = document.getElementById('logs-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    logs.forEach(log => {
+        const logEntry = createLogEntry(log);
+        container.appendChild(logEntry);
+    });
+    
+    updateLogsCount(logs.length);
+}
+
+function createLogEntry(log) {
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${log.level}`;
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'log-indicator';
+    
+    const content = document.createElement('div');
+    content.className = 'log-content';
+    
+    const time = document.createElement('span');
+    time.className = 'log-time';
+    time.textContent = formatLogTime(log.timestamp);
+    
+    const level = document.createElement('span');
+    level.className = `log-level ${log.level}`;
+    level.textContent = log.level.toUpperCase();
+    
+    const message = document.createElement('span');
+    message.className = 'log-message';
+    message.textContent = log.message;
+    
+    content.appendChild(time);
+    content.appendChild(level);
+    content.appendChild(message);
+    
+    entry.appendChild(indicator);
+    entry.appendChild(content);
+    
+    return entry;
+}
+
+function formatLogTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleString('pt-BR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
+function updateLogsCount(count) {
+    const countElement = document.querySelector('.logs-count');
+    if (countElement) {
+        countElement.textContent = `Exibindo ${Math.min(count, 10)} de ${count} logs`;
+    }
+}
+
+function refreshLogs() {
+    console.log('Refreshing logs...');
+    loadServerLogs();
+}
+
+function exportLogs() {
+    console.log('Exporting logs...');
+    // Implement log export functionality
+    alert('Funcionalidade de exportação será implementada em breve!');
+}
+
+function loadMoreLogs() {
+    console.log('Loading more logs...');
+    // Implement pagination for logs
+    alert('Carregamento de mais logs será implementado em breve!');
+}
+
+// Modal Functions
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.querySelector('.password-toggle i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleButton.className = 'fas fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        toggleButton.className = 'fas fa-eye';
+    }
+}
+
+// Enhanced log filtering
+function enhancedFilterLogs() {
+    const levelFilter = document.getElementById('log-level');
+    const selectedLevel = levelFilter ? levelFilter.value : 'all';
+    const logEntries = document.querySelectorAll('.log-entry');
+    
+    logEntries.forEach(entry => {
+        if (selectedLevel === 'all' || entry.classList.contains(selectedLevel)) {
+            entry.style.display = 'flex';
+        } else {
+            entry.style.display = 'none';
+        }
+    });
+    
+    // Update visible count
+    const visibleLogs = document.querySelectorAll('.log-entry[style*="flex"], .log-entry:not([style*="none"])');
+    const countElement = document.querySelector('.logs-count');
+    if (countElement) {
+        const totalLogs = document.querySelectorAll('.log-entry').length;
+        const visibleCount = selectedLevel === 'all' ? totalLogs : visibleLogs.length;
+        countElement.textContent = `Exibindo ${visibleCount} de ${totalLogs} logs`;
+    }
+}
+
+// Setup event listeners for logs section
+function setupLogEventListeners() {
+    // Log filter event listeners
+    const logLevelFilter = document.getElementById('log-level-filter');
+    const logSearch = document.getElementById('log-search');
+    const refreshLogsBtn = document.getElementById('refresh-logs');
+    const exportLogsBtn = document.getElementById('export-logs');
+    const loadMoreLogsBtn = document.getElementById('load-more-logs');
+    const clearLogsBtn = document.getElementById('clear-logs');
+    
+    if (logLevelFilter) {
+        logLevelFilter.addEventListener('change', enhancedFilterLogs);
+    }
+    
+    if (logSearch) {
+        logSearch.addEventListener('input', enhancedFilterLogs);
+    }
+    
+    if (refreshLogsBtn) {
+        refreshLogsBtn.addEventListener('click', refreshLogs);
+    }
+    
+    if (exportLogsBtn) {
+        exportLogsBtn.addEventListener('click', exportLogs);
+    }
+    
+    if (loadMoreLogsBtn) {
+        loadMoreLogsBtn.addEventListener('click', loadMoreLogs);
+    }
+    
+    if (clearLogsBtn) {
+        clearLogsBtn.addEventListener('click', clearLogs);
+    }
+    
+    // Modal event listeners
+    const createUserModal = document.getElementById('create-user-modal');
+    const closeModalBtn = document.querySelector('.close-modal');
+    const cancelBtn = document.querySelector('.btn-cancel');
+    const passwordToggle = document.getElementById('toggle-password');
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeCreateUserModal);
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeCreateUserModal);
+    }
+    
+    if (passwordToggle) {
+        passwordToggle.addEventListener('click', togglePasswordVisibility);
+    }
+    
+    // Close modal when clicking outside
+    if (createUserModal) {
+        createUserModal.addEventListener('click', (e) => {
+            if (e.target === createUserModal) {
+                closeCreateUserModal();
+            }
+        });
+    }
+    
+    console.log('Log event listeners configured successfully');
+}
